@@ -1857,10 +1857,20 @@ function setCalcP(p,b){
 }
 
 function parseDate(str){
-  // Support both DD/MM/YYYY and YYYY-MM-DD
   if(!str)return null;
-  if(str.includes('-')){const[y,m,d]=str.split('-');return new Date(y,m-1,d);}
-  if(str.includes('/')){const[d,m,y]=str.split('/');return new Date(y,m-1,d);}
+  // YYYY-MM-DD (format input HTML)
+  if(/^\d{4}-\d{2}-\d{2}$/.test(str)){
+    const[y,m,d]=str.split('-');
+    return new Date(parseInt(y),parseInt(m)-1,parseInt(d));
+  }
+  // DD/MM/YYYY (format today() de l'app)
+  if(str.includes('/')){
+    const parts=str.split('/');
+    if(parts.length===3){
+      const[d,m,y]=parts;
+      return new Date(parseInt(y),parseInt(m)-1,parseInt(d));
+    }
+  }
   return null;
 }
 
@@ -1869,8 +1879,11 @@ function inPeriod(dateStr){
   const to=parseDate(document.getElementById('calc-to').value);
   const d=parseDate(dateStr);
   if(!from||!to||!d)return false;
-  const toEnd=new Date(to);toEnd.setHours(23,59,59);
-  return d>=from&&d<=toEnd;
+  // Comparer sans les heures
+  const f=new Date(from.getFullYear(),from.getMonth(),from.getDate());
+  const t2=new Date(to.getFullYear(),to.getMonth(),to.getDate(),23,59,59);
+  const dd=new Date(d.getFullYear(),d.getMonth(),d.getDate());
+  return dd>=f&&dd<=t2;
 }
 
 function calcGains(){
