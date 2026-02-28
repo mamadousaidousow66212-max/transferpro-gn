@@ -623,6 +623,87 @@ textarea{resize:none;height:54px}
     <button class="btn btn-ghost" style="width:100%;margin-top:5px" onclick="waDetail()">📋 Rapport détaillé</button>
   </div>
 
+  <!-- ═══ PAGE CALCUL GAINS ═══ -->
+  <div id="pg-calc" class="pg">
+
+    <!-- HÉRO TOTAL -->
+    <div style="background:linear-gradient(135deg,#0a1a08,#060f05);border:1px solid rgba(0,201,122,.15);border-radius:var(--r);padding:14px;margin-bottom:10px;text-align:center">
+      <div style="font-size:9px;color:var(--t2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px">🏆 Résultat net de la période</div>
+      <div id="calc-total" style="font-size:28px;font-weight:900;color:var(--gr);font-family:'JetBrains Mono',monospace">0 GNF</div>
+      <div id="calc-detail" style="font-size:10px;color:var(--t2);margin-top:3px">Définissez une période ci-dessous</div>
+    </div>
+
+    <!-- PÉRIODE -->
+    <div class="card">
+      <div class="csec">
+        <div class="ct">📅 Période de calcul</div>
+        <div class="row2">
+          <div class="field"><label>Date début</label><input type="date" id="calc-from" onchange="calcGains()"></div>
+          <div class="field"><label>Date fin</label><input type="date" id="calc-to" onchange="calcGains()"></div>
+        </div>
+        <div class="chips" style="margin-top:4px;margin-bottom:0" id="calc-chips">
+          <div class="chip on" onclick="setCalcP('day',this)">Aujourd'hui</div>
+          <div class="chip" onclick="setCalcP('week',this)">7 jours</div>
+          <div class="chip" onclick="setCalcP('month',this)">Ce mois</div>
+          <div class="chip" onclick="setCalcP('custom',this)">Personnalisé</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SOURCES DE REVENUS -->
+    <div class="card">
+      <div class="csec">
+        <div class="ct">💰 Sources de revenus</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <div style="font-size:11px;color:var(--t2)">Commissions transferts</div>
+          <div id="calc-comm" style="font-size:13px;font-weight:800;color:var(--gr);font-family:'JetBrains Mono',monospace">0 GNF</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <div style="font-size:11px;color:var(--t2)">Gains devises (forex)</div>
+          <div id="calc-forex" style="font-size:13px;font-weight:800;color:var(--te);font-family:'JetBrains Mono',monospace">0 GNF</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding-top:8px;border-top:1px solid var(--bd)">
+          <div style="font-size:11px;font-weight:700">Total revenus bruts</div>
+          <div id="calc-brut" style="font-size:14px;font-weight:900;color:var(--gold);font-family:'JetBrains Mono',monospace">0 GNF</div>
+        </div>
+      </div>
+      <div class="csec">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <div style="font-size:11px;color:var(--re)">📉 Dépenses & charges</div>
+          <div id="calc-dep" style="font-size:13px;font-weight:800;color:var(--re);font-family:'JetBrains Mono',monospace">0 GNF</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding-top:8px;border-top:1px solid var(--bd)">
+          <div style="font-size:12px;font-weight:800">🏆 Bénéfice net</div>
+          <div id="calc-net" style="font-size:15px;font-weight:900;font-family:'JetBrains Mono',monospace">0 GNF</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PARTICIPANTS -->
+    <div class="card">
+      <div class="csec">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px">
+          <div class="ct" style="margin-bottom:0">👥 Participants & pourcentages</div>
+          <button onclick="addParticipant()" style="background:var(--goldd);color:var(--gold);border:1px solid rgba(240,165,0,.2);border-radius:7px;padding:4px 10px;font-size:10px;font-weight:700;cursor:pointer;font-family:'Sora',sans-serif">+ Ajouter</button>
+        </div>
+        <div id="participants-list"></div>
+        <div id="pct-warn" style="display:none;background:var(--red);border:1px solid rgba(255,63,86,.2);border-radius:7px;padding:7px 10px;font-size:10px;color:var(--re);font-weight:600;margin-top:7px;text-align:center">
+          ⚠️ Total des pourcentages ≠ 100%
+        </div>
+        <div id="pct-ok" style="display:none;background:var(--grd);border:1px solid rgba(0,201,122,.2);border-radius:7px;padding:7px 10px;font-size:10px;color:var(--gr);font-weight:600;margin-top:7px;text-align:center">
+          ✅ Total = 100% — Répartition équilibrée
+        </div>
+      </div>
+    </div>
+
+    <!-- RÉSULTATS RÉPARTITION -->
+    <div id="calc-results" style="display:none">
+      <div class="sec">💰 Répartition des gains</div>
+      <div id="calc-repartition"></div>
+      <button class="btn-wa" onclick="waCalc()" style="margin-top:4px">📲 Partager sur WhatsApp</button>
+    </div>
+  </div>
+
   <!-- ═══ PAGE ADMIN ═══ -->
   <div id="pg-admin" class="pg">
     <div id="admin-dr" style="display:none">
@@ -665,6 +746,7 @@ textarea{resize:none;height:54px}
     <button class="nb" id="nb-dep" onclick="goPage('dep')"><div class="ni">📉</div><div class="nl">Dépenses</div></button>
     <button class="nb" id="nb-fx" onclick="goPage('fx')"><div class="ni">💱</div><div class="nl">Devises</div></button>
     <button class="nb" id="nb-gains" onclick="goPage('gains')"><div class="ni">💰</div><div class="nl">Gains</div></button>
+    <button class="nb" id="nb-calc" onclick="goPage('calc')"><div class="ni">🧮</div><div class="nl">Calcul</div></button>
     <!-- Admin-only tabs — injected via JS -->
   </nav>
 </div>
@@ -689,6 +771,35 @@ textarea{resize:none;height:54px}
     <div class="mbtns">
       <button class="mbtn-cl" onclick="closeModal('m-val')">Annuler</button>
       <button class="mbtn-ok" id="mv-ok" onclick="doPay()" disabled>✅ Confirmer payé</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL ÉDITION TRANSFERT ═══ -->
+<div class="mbg" id="m-edit">
+  <div class="msh">
+    <div class="mhd"></div>
+    <div class="mt">✏️ Modifier le transfert</div>
+    <div class="ms">Seuls les champs modifiables sont affichés</div>
+    <input type="hidden" id="edit-id">
+    <div class="field"><label>Nom bénéficiaire</label><input type="text" id="edit-nom" placeholder="Nom complet"></div>
+    <div class="row2">
+      <div class="field"><label>Montant (GNF)</label><input type="text" id="edit-mnt" inputmode="numeric" oninput="fmtMoney(this);updEditComm()"></div>
+      <div class="field"><label>Montant envoyé</label><input type="text" id="edit-mntdev" inputmode="decimal"></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Code retrait</label><input type="text" id="edit-code" class="mono-i"></div>
+      <div class="field"><label>Téléphone</label><input type="tel" id="edit-tel" inputmode="tel" oninput="fmtTel(this)"></div>
+    </div>
+    <div class="field"><label>Pays</label><input type="text" id="edit-pays" placeholder="France, USA..."></div>
+    <div class="field"><label>Note</label><input type="text" id="edit-note" placeholder="Détail..."></div>
+    <div class="field"><label>Commission (GNF)</label>
+      <input type="text" id="edit-comm" inputmode="numeric" oninput="fmtMoney(this)" style="border-color:rgba(0,201,122,.3);color:var(--gr);font-weight:700">
+    </div>
+    <div id="edit-comm-prev" style="font-size:10px;color:var(--t2);margin-top:-4px;margin-bottom:6px"></div>
+    <div class="mbtns" style="margin-top:11px">
+      <button class="mbtn-cl" onclick="closeModal('m-edit')">Annuler</button>
+      <button class="mbtn-ok" onclick="saveEditT()">✅ Sauvegarder</button>
     </div>
   </div>
 </div>
@@ -913,7 +1024,7 @@ function goPage(p){
   const renders={
     home:renderHome,att:renderAtt,dep:renderDep,
     fx:renderFx,caisse:renderCaisse,rap:renderRap,
-    hist:renderHist,admin:renderAdmin,gains:renderGains
+    hist:renderHist,admin:renderAdmin,gains:renderGains,calc:renderCalc
   };
   if(renders[p])renders[p]();
 }
@@ -1067,6 +1178,7 @@ function tCard(t,pend=false){
   </div>
   ${pend&&!hasDR?`<div class="tc-btns">
     <button class="tbtn tb-pay" onclick="openVal('${t.id}')">🔐 Valider</button>
+    <button class="tbtn" style="background:rgba(167,139,250,.1);color:#a78bfa;border:1px solid rgba(167,139,250,.2);flex:.6" onclick="openEditT('${t.id}')">✏️</button>
     <button class="tbtn tb-wa" onclick="wa1('${t.id}')">📲</button>
     <button class="tbtn tb-del" onclick="reqDel('${t.id}')">🗑</button>
     <button class="tbtn tb-canc" onclick="doCancel('${t.id}')">❌</button>
@@ -1661,6 +1773,272 @@ function updStats(){
   document.getElementById('s-ben').textContent=fmtS(Math.abs(ben));
   document.getElementById('s-agt').textContent=Object.values(D.users||{}).filter(u=>u.active!==false).length;
   updateAdminBadge();
+}
+
+// ── ÉDITION TRANSFERT ────────────────────────────────────
+function openEditT(id){
+  const t=(D.transfers||{})[id];if(!t)return;
+  document.getElementById('edit-id').value=id;
+  document.getElementById('edit-nom').value=t.nom||'';
+  document.getElementById('edit-mnt').value=t.mnt?fmtN(t.mnt):(t.montant?fmtN(t.montant):'');
+  document.getElementById('edit-mntdev').value=t.mntdev||'';
+  document.getElementById('edit-code').value=t.code||'';
+  document.getElementById('edit-tel').value=t.tel||'';
+  document.getElementById('edit-pays').value=t.pays||'';
+  document.getElementById('edit-note').value=t.note||'';
+  document.getElementById('edit-comm').value=t.comm?fmtN(t.comm):(t.commission?fmtN(t.commission):'');
+  document.getElementById('m-edit').classList.add('on');
+}
+function updEditComm(){
+  const mnt=readM('edit-mnt');
+  const r=D.settings?.commRate||2;
+  const auto=Math.round(mnt*r/100);
+  document.getElementById('edit-comm-prev').textContent=mnt>0?`Auto (${r}%): ${fmtGNF(auto)}`:'';
+}
+async function saveEditT(){
+  const id=document.getElementById('edit-id').value;
+  const t=(D.transfers||{})[id];if(!t)return;
+  const mnt=readM('edit-mnt')||t.mnt||t.montant||0;
+  const comm=readM('edit-comm')||(t.comm||t.commission||0);
+  const upd={...t,
+    nom:document.getElementById('edit-nom').value.trim()||t.nom,
+    mnt,montant:mnt,
+    mntdev:parseFloat(document.getElementById('edit-mntdev').value)||t.mntdev||0,
+    code:document.getElementById('edit-code').value.trim()||t.code,
+    tel:document.getElementById('edit-tel').value.trim()||t.tel||'',
+    pays:document.getElementById('edit-pays').value.trim()||t.pays,
+    note:document.getElementById('edit-note').value.trim(),
+    comm,commission:comm,
+    editedBy:CU.id,editedAt:today()+' '+nowT()
+  };
+  D.transfers[id]=upd;
+  await fbW('tpro/transfers/'+id,upd);
+  lSave();closeModal('m-edit');updStats();renderAtt();
+  showT('✅ Transfert modifié !','s');
+}
+
+// ── CALCUL GAINS ──────────────────────────────────────────
+let CalcPeriod='day';
+let Participants=[];
+
+function initCalc(){
+  // Charger participants sauvegardés ou initialiser avec agents
+  const saved=localStorage.getItem('tpro_participants');
+  if(saved){try{Participants=JSON.parse(saved);}catch(e){Participants=[];}}
+  if(!Participants.length){
+    // Pré-remplir avec les agents existants
+    Object.values(D.users||{}).forEach(u=>{
+      Participants.push({id:'p'+Date.now()+Math.random(),name:u.name,pct:0,role:u.role==='admin'?'Admin':'Agent'});
+    });
+  }
+  setCalcToday();
+}
+
+function setCalcToday(){
+  const td=new Date();
+  const fmt=d=>d.toISOString().split('T')[0];
+  document.getElementById('calc-from').value=fmt(td);
+  document.getElementById('calc-to').value=fmt(td);
+}
+
+function setCalcP(p,b){
+  CalcPeriod=p;
+  document.querySelectorAll('#calc-chips .chip').forEach(c=>c.classList.remove('on'));
+  b.classList.add('on');
+  const now=new Date();
+  const fmt=d=>d.toISOString().split('T')[0];
+  const fromEl=document.getElementById('calc-from');
+  const toEl=document.getElementById('calc-to');
+  if(p==='day'){fromEl.value=fmt(now);toEl.value=fmt(now);}
+  else if(p==='week'){const d=new Date();d.setDate(d.getDate()-7);fromEl.value=fmt(d);toEl.value=fmt(now);}
+  else if(p==='month'){fromEl.value=fmt(new Date(now.getFullYear(),now.getMonth(),1));toEl.value=fmt(now);}
+  // 'custom' : laisser l'utilisateur choisir
+  calcGains();
+}
+
+function parseDate(str){
+  // Support both DD/MM/YYYY and YYYY-MM-DD
+  if(!str)return null;
+  if(str.includes('-')){const[y,m,d]=str.split('-');return new Date(y,m-1,d);}
+  if(str.includes('/')){const[d,m,y]=str.split('/');return new Date(y,m-1,d);}
+  return null;
+}
+
+function inPeriod(dateStr){
+  const from=parseDate(document.getElementById('calc-from').value);
+  const to=parseDate(document.getElementById('calc-to').value);
+  const d=parseDate(dateStr);
+  if(!from||!to||!d)return false;
+  const toEnd=new Date(to);toEnd.setHours(23,59,59);
+  return d>=from&&d<=toEnd;
+}
+
+function calcGains(){
+  // Filtrer par période
+  const tArr=Object.values(D.transfers||{});
+  const eArr=Object.values(D.expenses||{});
+  const fxArr=Object.values(D.forex||{});
+
+  const paid=tArr.filter(t=>t.status==='paid'&&inPeriod(t.paidDate));
+  const comm=paid.reduce((s,t)=>s+(t.comm||t.commission||0),0);
+  const fxGain=fxArr.filter(f=>inPeriod(f.date)).reduce((s,f)=>s+(f.gain||0),0);
+  const dep=eArr.filter(e=>inPeriod(e.date)).reduce((s,e)=>s+e.mnt,0);
+  const brut=comm+fxGain;
+  const net=brut-dep;
+
+  // Afficher
+  document.getElementById('calc-comm').textContent=fmtGNF(comm);
+  document.getElementById('calc-forex').textContent=fmtGNF(fxGain);
+  document.getElementById('calc-brut').textContent=fmtGNF(brut);
+  document.getElementById('calc-dep').textContent=fmtGNF(dep);
+  const netEl=document.getElementById('calc-net');
+  netEl.textContent=fmtGNF(Math.abs(net));
+  netEl.style.color=net>=0?'var(--gr)':'var(--re)';
+  document.getElementById('calc-total').textContent=fmtGNF(Math.abs(net));
+  document.getElementById('calc-total').style.color=net>=0?'var(--gr)':'var(--re)';
+
+  const from=document.getElementById('calc-from').value;
+  const to=document.getElementById('calc-to').value;
+  document.getElementById('calc-detail').textContent=
+    `${paid.length} transferts · ${from===to?from:from+' → '+to}`;
+
+  renderParticipants(net);
+}
+
+function addParticipant(){
+  Participants.push({id:'p'+Date.now(),name:'',pct:0,role:'Agent'});
+  renderParticipants(getNet());
+}
+
+function removeParticipant(id){
+  Participants=Participants.filter(p=>p.id!==id);
+  saveParticipants();
+  renderParticipants(getNet());
+}
+
+function getNet(){
+  const tArr=Object.values(D.transfers||{});
+  const eArr=Object.values(D.expenses||{});
+  const fxArr=Object.values(D.forex||{});
+  const paid=tArr.filter(t=>t.status==='paid'&&inPeriod(t.paidDate));
+  const comm=paid.reduce((s,t)=>s+(t.comm||t.commission||0),0);
+  const fxGain=fxArr.filter(f=>inPeriod(f.date)).reduce((s,f)=>s+(f.gain||0),0);
+  const dep=eArr.filter(e=>inPeriod(e.date)).reduce((s,e)=>s+e.mnt,0);
+  return comm+fxGain-dep;
+}
+
+function saveParticipants(){
+  localStorage.setItem('tpro_participants',JSON.stringify(Participants));
+}
+
+function updParticipant(id,field,val){
+  const p=Participants.find(x=>x.id===id);
+  if(!p)return;
+  if(field==='pct')p.pct=parseFloat(val)||0;
+  if(field==='name')p.name=val;
+  if(field==='role')p.role=val;
+  saveParticipants();
+  // Recalcul en temps réel
+  const net=getNet();
+  renderRepartition(net);
+  checkPct();
+}
+
+function checkPct(){
+  const total=Participants.reduce((s,p)=>s+p.pct,0);
+  document.getElementById('pct-warn').style.display=total>0&&Math.abs(total-100)>0.1?'block':'none';
+  document.getElementById('pct-ok').style.display=total>0&&Math.abs(total-100)<=0.1?'block':'none';
+}
+
+function renderParticipants(net){
+  const el=document.getElementById('participants-list');
+  if(!Participants.length){
+    el.innerHTML=`<div style="text-align:center;font-size:11px;color:var(--t2);padding:10px">Appuyez + Ajouter pour commencer</div>`;
+    document.getElementById('calc-results').style.display='none';
+    return;
+  }
+  el.innerHTML=Participants.map(p=>`
+    <div style="background:var(--s1);border:1px solid var(--bd);border-radius:9px;padding:9px 11px;margin-bottom:6px">
+      <div class="row2" style="margin-bottom:5px">
+        <div class="field" style="margin:0">
+          <label>Nom</label>
+          <input type="text" value="${p.name}" placeholder="Ex: Mamadou" onchange="updParticipant('${p.id}','name',this.value)" style="font-size:12px;padding:7px 9px">
+        </div>
+        <div class="field" style="margin:0">
+          <label>Rôle</label>
+          <select onchange="updParticipant('${p.id}','role',this.value)" style="font-size:12px;padding:7px 9px">
+            <option ${p.role==='Admin'?'selected':''}>Admin</option>
+            <option ${p.role==='Agent'?'selected':''}>Agent</option>
+            <option ${p.role==='Investisseur'?'selected':''}>Investisseur</option>
+            <option ${p.role==='Associé'?'selected':''}>Associé</option>
+            <option ${p.role==='Autre'?'selected':''}>Autre</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="flex:1">
+          <label>Part (%)</label>
+          <div style="display:flex;align-items:center;gap:5px">
+            <input type="number" value="${p.pct}" min="0" max="100" step="0.5" placeholder="0" oninput="updParticipant('${p.id}','pct',this.value)" style="font-size:14px;font-weight:700;color:var(--gold);text-align:center;padding:7px">
+            <span style="font-size:18px;font-weight:900;color:var(--gold)">%</span>
+          </div>
+        </div>
+        <div style="text-align:right;min-width:90px">
+          <div style="font-size:9px;color:var(--t2);margin-bottom:2px">Gain estimé</div>
+          <div style="font-size:14px;font-weight:800;color:var(--gr);font-family:'JetBrains Mono',monospace">${fmtGNF(Math.round(Math.max(0,net)*p.pct/100))}</div>
+        </div>
+        <button onclick="removeParticipant('${p.id}')" style="width:26px;height:26px;border-radius:6px;background:var(--red);color:var(--re);border:none;cursor:pointer;font-size:12px;flex-shrink:0">✕</button>
+      </div>
+    </div>`).join('');
+  checkPct();
+  renderRepartition(net);
+}
+
+function renderRepartition(net){
+  const res=document.getElementById('calc-results');
+  const el=document.getElementById('calc-repartition');
+  if(!Participants.length||net<=0){res.style.display='none';return;}
+  res.style.display='block';
+  el.innerHTML=Participants.map(p=>{
+    const gain=Math.round(net*p.pct/100);
+    return`<div style="background:var(--s2);border:1px solid var(--bd);border-left:3px solid var(--gr);border-radius:var(--r);padding:11px;margin-bottom:7px;display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="font-size:13px;font-weight:700">${p.name||'—'}</div>
+        <div style="font-size:9px;color:var(--t2);margin-top:2px">${p.role} · ${p.pct}% du bénéfice net</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:16px;font-weight:900;color:var(--gr);font-family:'JetBrains Mono',monospace">${fmtGNF(gain)}</div>
+        <div style="font-size:9px;color:var(--t2)">${p.pct}% × ${fmtGNF(net)}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderCalc(){
+  initCalc();
+  calcGains();
+}
+
+function waCalc(){
+  const net=getNet();
+  const from=document.getElementById('calc-from').value;
+  const to=document.getElementById('calc-to').value;
+  let msg=`💰 *RÉPARTITION DES GAINS — TransferPro GN*
+📅 ${from===to?from:from+' → '+to}
+${'━'.repeat(24)}
+`;
+  msg+=`🏆 Bénéfice net : *${fmtGNF(net)}*
+
+👥 *Répartition :*
+`;
+  Participants.forEach(p=>{
+    const gain=Math.round(net*p.pct/100);
+    msg+=`• ${p.name||'—'} (${p.role}) — ${p.pct}% = *${fmtGNF(gain)}*
+`;
+  });
+  msg+=`
+💸 _TransferPro GN_`;
+  window.open('https://wa.me/?text='+encodeURIComponent(msg));
 }
 
 // ── DIVERS ────────────────────────────────────────────────
