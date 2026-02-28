@@ -95,6 +95,9 @@ body{color:var(--tx);font-family:'Sora',sans-serif;max-width:430px;margin:0 auto
 .nb-add .ni{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#000;width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:900;box-shadow:0 4px 14px var(--glow);margin-top:-5px}
 .nwrap{position:relative;display:inline-block}
 .nbadge{width:7px;height:7px;background:var(--re);border-radius:50%;position:absolute;top:-1px;right:-1px;display:none;border:1.5px solid var(--s1)}
+.nbadge-num{min-width:14px;height:14px;background:var(--re);border-radius:7px;position:absolute;top:-5px;right:-5px;display:none;border:1.5px solid var(--s1);font-size:8px;font-weight:800;color:#fff;display:flex;align-items:center;justify-content:center;padding:0 3px}
+.pulse{animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(0,201,122,.4)}50%{box-shadow:0 0 0 6px rgba(0,201,122,0)}}
 
 /* ═══ PAGES ═══ */
 .pg{display:none;flex:1;overflow-y:auto;padding:10px 11px 72px;-webkit-overflow-scrolling:touch}
@@ -324,7 +327,7 @@ textarea{resize:none;height:54px}
 <div id="app">
   <div class="hdr">
     <div class="hdr-r1">
-      <div class="logo"><em>Transfer</em><span>Pro GN</span></div>
+      <div class="logo"><em>Transfer</em><span>Pro GN</span> <span id="streak-badge" style="display:none;background:var(--goldd);color:var(--gold);font-size:8px;font-weight:700;padding:2px 5px;border-radius:4px;margin-left:3px"></span></div>
       <div class="hdr-right">
         <div class="pill-live" id="pill-live"><div class="pill-dot"></div>Live</div>
         <div class="ubox"><div class="udot" id="udot"></div><span id="udisp">—</span></div>
@@ -349,6 +352,7 @@ textarea{resize:none;height:54px}
 
   <!-- ═══ PAGE ACCUEIL ═══ -->
   <div id="pg-home" class="pg on">
+    <div id="home-alert" style="display:none;background:rgba(240,165,0,.1);border:1px solid rgba(240,165,0,.25);border-radius:9px;padding:8px 12px;margin-bottom:8px;display:none;align-items:center;justify-content:space-between"></div>
     <div class="hero" id="hero-ben" style="background:linear-gradient(135deg,#06200e,#03140a);border:1px solid rgba(0,201,122,.14)">
       <div class="hero-sub" style="color:var(--gr)">💰 Bénéfice net du jour</div>
       <div class="hero-val c-gr" id="h-ben">0 GNF</div>
@@ -580,9 +584,43 @@ textarea{resize:none;height:54px}
   </div>
 
   <!-- ═══ PAGE GAINS DEVISES ═══ -->
+  <!-- ═══ PAGE GAINS TRANSFERTS ═══ -->
+  <div id="pg-gtrans" class="pg">
+    <div style="background:linear-gradient(135deg,#06180a,#040e08);border:1px solid rgba(0,201,122,.15);border-radius:var(--r);padding:14px;margin-bottom:10px;text-align:center">
+      <div style="font-size:9px;color:var(--t2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px">💹 Commissions transferts</div>
+      <div id="gtrans-total" style="font-size:30px;font-weight:900;color:var(--gr);font-family:'JetBrains Mono',monospace">0 GNF</div>
+      <div id="gtrans-count" style="font-size:10px;color:var(--t2);margin-top:3px">— transferts payés</div>
+    </div>
+    <!-- Mini stats -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px">
+      <div style="background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:9px;text-align:center">
+        <div id="gtrans-vol" style="font-size:11px;font-weight:800;color:var(--gold);font-family:'JetBrains Mono',monospace">0</div>
+        <div style="font-size:7px;color:var(--t2);text-transform:uppercase;margin-top:2px">Volume GNF</div>
+      </div>
+      <div style="background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:9px;text-align:center">
+        <div id="gtrans-avg" style="font-size:11px;font-weight:800;color:var(--bl);font-family:'JetBrains Mono',monospace">0</div>
+        <div style="font-size:7px;color:var(--t2);text-transform:uppercase;margin-top:2px">Comm. moy.</div>
+      </div>
+      <div style="background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:9px;text-align:center">
+        <div id="gtrans-rate" style="font-size:11px;font-weight:800;color:var(--pu);font-family:'JetBrains Mono',monospace">0%</div>
+        <div style="font-size:7px;color:var(--t2);text-transform:uppercase;margin-top:2px">Taux moyen</div>
+      </div>
+    </div>
+    <div class="chips" id="gtrans-chips">
+      <div class="chip on" onclick="setGTF('day',this)">Aujourd'hui</div>
+      <div class="chip" onclick="setGTF('week',this)">7 jours</div>
+      <div class="chip" onclick="setGTF('month',this)">Ce mois</div>
+      <div class="chip" onclick="setGTF('all',this)">Tout</div>
+    </div>
+    <!-- Top agents -->
+    <div id="gtrans-agents" style="margin-bottom:8px"></div>
+    <div class="sec">Détail des transferts</div>
+    <div id="gtrans-list"></div>
+  </div>
+
   <div id="pg-gains" class="pg">
     <div id="gains-hero" style="background:linear-gradient(135deg,#06180a,#04120a);border:1px solid rgba(0,201,122,.15);border-radius:var(--r);padding:14px;margin-bottom:10px;text-align:center">
-      <div style="font-size:9px;color:var(--t2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px">💰 Gains devises du jour</div>
+      <div style="font-size:9px;color:var(--t2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px">💱 Gains devises (Forex)</div>
       <div id="gains-total" style="font-size:30px;font-weight:900;color:var(--gr);font-family:'JetBrains Mono',monospace">0 GNF</div>
       <div id="gains-count" style="font-size:10px;color:var(--t2);margin-top:3px">— opérations</div>
     </div>
@@ -597,10 +635,39 @@ textarea{resize:none;height:54px}
 
   <!-- ═══ PAGE CAISSE ═══ -->
   <div id="pg-caisse" class="pg">
+    <!-- Solde caisse -->
     <div class="caisse-hero">
       <div style="font-size:9px;color:var(--t2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px">🏦 Solde de caisse</div>
       <div class="ch-val" id="c-solde">0 GNF</div>
       <div class="ch-sub" id="c-sub">—</div>
+    </div>
+    <!-- Bénéfice net période -->
+    <div style="background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:11px;margin-bottom:10px">
+      <div style="font-size:8px;color:var(--t2);text-transform:uppercase;letter-spacing:.6px;font-weight:700;margin-bottom:8px">📊 Bénéfice net de la période</div>
+      <div class="chips" id="caisse-chips" style="margin-bottom:8px">
+        <div class="chip on" onclick="setCaisseP('day',this)">Aujourd'hui</div>
+        <div class="chip" onclick="setCaisseP('week',this)">7 jours</div>
+        <div class="chip" onclick="setCaisseP('month',this)">Ce mois</div>
+        <div class="chip" onclick="setCaisseP('all',this)">Tout</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:5px" id="caisse-ben-detail">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--bd)">
+          <span style="font-size:10px;color:var(--t2)">💹 Commissions</span>
+          <span id="cb-comm" style="font-size:12px;font-weight:700;color:var(--gr);font-family:'JetBrains Mono',monospace">+0 GNF</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--bd)">
+          <span style="font-size:10px;color:var(--t2)">💱 Gains forex</span>
+          <span id="cb-forex" style="font-size:12px;font-weight:700;color:var(--te);font-family:'JetBrains Mono',monospace">+0 GNF</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--bd)">
+          <span style="font-size:10px;color:var(--re)">📉 Dépenses</span>
+          <span id="cb-dep" style="font-size:12px;font-weight:700;color:var(--re);font-family:'JetBrains Mono',monospace">-0 GNF</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding-top:7px">
+          <span style="font-size:11px;font-weight:700">🏆 Bénéfice net</span>
+          <span id="cb-net" style="font-size:15px;font-weight:900;font-family:'JetBrains Mono',monospace;color:var(--gr)">0 GNF</span>
+        </div>
+      </div>
     </div>
     <div class="op2">
       <button class="opbtn op-in" onclick="openCaisse('in')">➕ Entrée</button>
@@ -745,7 +812,8 @@ textarea{resize:none;height:54px}
     <button class="nb nb-add" id="nb-new" onclick="goPage('new')"><div class="ni">＋</div><div class="nl" style="color:var(--gold)">Nouveau</div></button>
     <button class="nb" id="nb-dep" onclick="goPage('dep')"><div class="ni">📉</div><div class="nl">Dépenses</div></button>
     <button class="nb" id="nb-fx" onclick="goPage('fx')"><div class="ni">💱</div><div class="nl">Devises</div></button>
-    <button class="nb" id="nb-gains" onclick="goPage('gains')"><div class="ni">💰</div><div class="nl">Gains</div></button>
+    <button class="nb" id="nb-gtrans" onclick="goPage('gtrans')"><div class="ni">💹</div><div class="nl">Gains T.</div></button>
+    <button class="nb" id="nb-gains" onclick="goPage('gains')"><div class="ni">💱</div><div class="nl">Gains FX</div></button>
     <button class="nb" id="nb-calc" onclick="goPage('calc')"><div class="ni">🧮</div><div class="nl">Calcul</div></button>
     <!-- Admin-only tabs — injected via JS -->
   </nav>
@@ -1024,7 +1092,7 @@ function goPage(p){
   const renders={
     home:renderHome,att:renderAtt,dep:renderDep,
     fx:renderFx,caisse:renderCaisse,rap:renderRap,
-    hist:renderHist,admin:renderAdmin,gains:renderGains,calc:renderCalc
+    hist:renderHist,admin:renderAdmin,gains:renderGains,gtrans:renderGtrans,calc:renderCalc
   };
   if(renders[p])renders[p]();
 }
@@ -1423,6 +1491,112 @@ function renderFx(){
   </div>`).join('');
 }
 
+// ── GAINS TRANSFERTS ─────────────────────────────────────
+let GTF='day';
+function setGTF(f,b){GTF=f;document.querySelectorAll('#gtrans-chips .chip').forEach(c=>c.classList.remove('on'));b.classList.add('on');renderGtrans();}
+function filterGT(arr){
+  const td=today();const now=new Date();
+  if(GTF==='day')return arr.filter(x=>x.paidDate===td||x.date===td);
+  if(GTF==='week'){const d=new Date();d.setDate(d.getDate()-7);
+    return arr.filter(x=>{const ds=x.paidDate||x.date;if(!ds)return false;const[dd,mm,yy]=ds.split('/');return new Date(parseInt(yy),parseInt(mm)-1,parseInt(dd))>=d;});}
+  if(GTF==='month'){const m=now.getMonth(),y=now.getFullYear();
+    return arr.filter(x=>{const ds=x.paidDate||x.date;if(!ds)return false;const[dd,mm,yy]=ds.split('/');return parseInt(mm)-1===m&&parseInt(yy)===y;});}
+  return arr;
+}
+function renderGtrans(){
+  const tArr=Object.values(D.transfers||{});
+  const paid=filterGT(tArr.filter(t=>t.status==='paid'));
+  paid.sort((a,b)=>b.id.localeCompare(a.id));
+  const totalComm=paid.reduce((s,t)=>s+(parseInt(t.comm||t.commission||0)||0),0);
+  const totalVol=paid.reduce((s,t)=>s+(parseInt(t.mnt||t.montant||0)||0),0);
+  const avgComm=paid.length?Math.round(totalComm/paid.length):0;
+  const avgRate=totalVol?((totalComm/totalVol)*100).toFixed(2):0;
+  document.getElementById('gtrans-total').textContent=fmtGNF(totalComm);
+  document.getElementById('gtrans-count').textContent=`${paid.length} transfert(s) payé(s) · Volume: ${fmtGNF(totalVol)}`;
+  document.getElementById('gtrans-vol').textContent=fmtS(totalVol);
+  document.getElementById('gtrans-avg').textContent=fmtS(avgComm);
+  document.getElementById('gtrans-rate').textContent=avgRate+'%';
+  // Top agents
+  const byAgent={};
+  paid.forEach(t=>{
+    const a=t.agentName||t.agentId||'?';
+    if(!byAgent[a])byAgent[a]={cnt:0,comm:0,vol:0};
+    byAgent[a].cnt++;
+    byAgent[a].comm+=(parseInt(t.comm||t.commission||0)||0);
+    byAgent[a].vol+=(parseInt(t.mnt||t.montant||0)||0);
+  });
+  const agents=Object.entries(byAgent).sort((a,b)=>b[1].comm-a[1].comm);
+  const agEl=document.getElementById('gtrans-agents');
+  if(agents.length>1){
+    agEl.innerHTML=`<div style="font-size:8px;color:var(--t2);text-transform:uppercase;letter-spacing:.6px;font-weight:700;margin-bottom:6px">🏅 Performance agents</div>`+
+    agents.map(([name,v],i)=>`
+      <div style="background:var(--s2);border:1px solid var(--bd);border-radius:9px;padding:8px 11px;margin-bottom:5px;display:flex;justify-content:space-between;align-items:center">
+        <div style="display:flex;align-items:center;gap:7px">
+          <div style="width:22px;height:22px;border-radius:6px;background:${i===0?'linear-gradient(135deg,#b87800,var(--gold))':i===1?'linear-gradient(135deg,#4a4a6a,#818cf8)':'var(--s3)'};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:${i<2?'#000':'var(--t2)'}">${i+1}</div>
+          <div>
+            <div style="font-size:11px;font-weight:700">${name}</div>
+            <div style="font-size:8px;color:var(--t2)">${v.cnt} transfert(s) · Vol. ${fmtGNF(v.vol)}</div>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:13px;font-weight:800;color:var(--gr);font-family:'JetBrains Mono',monospace">+${fmtGNF(v.comm)}</div>
+          <div style="font-size:8px;color:var(--t2)">${v.vol?((v.comm/v.vol)*100).toFixed(1):'0'}% taux</div>
+        </div>
+      </div>`).join('');
+  } else agEl.innerHTML='';
+  const el=document.getElementById('gtrans-list');
+  if(!paid.length){
+    el.innerHTML=`<div class="empty"><div class="empty-e">💹</div><div class="empty-t">Aucune commission pour cette période</div></div>`;
+    return;
+  }
+  el.innerHTML=paid.map(t=>`<div class="xc" style="border-left-color:var(--gr)">
+    <div class="xc-top">
+      <div class="xc-l">
+        <div class="name">${t.nom} <span style="font-size:8px;color:var(--bl);background:var(--bld);padding:2px 5px;border-radius:3px">${t.pays||''}</span></div>
+        <div class="sub">👷 ${t.agentName||t.agentId} · ${t.paidDate||t.date} ${t.paidTime||t.time||''} · 🔑 ${t.code}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:11px;color:var(--t2)">${fmtGNF(parseInt(t.mnt||t.montant||0))}</div>
+        <div style="font-size:13px;font-weight:800;color:var(--gr);font-family:'JetBrains Mono',monospace">+${fmtGNF(parseInt(t.comm||t.commission||0))}</div>
+        <div style="font-size:8px;color:var(--t2)">${t.cmMode==='fix'?'fixe':((t.cmRate||D.settings?.commRate||2)+'%')}</div>
+      </div>
+    </div>
+  </div>`).join('');
+}
+
+// ── CAISSE BÉNÉFICE PÉRIODE ───────────────────────────────
+let CaisseP='day';
+function setCaisseP(p,b){
+  CaisseP=p;
+  document.querySelectorAll('#caisse-chips .chip').forEach(c=>c.classList.remove('on'));
+  b.classList.add('on');
+  renderCaisseBen();
+}
+function filterCP(arr,dateKey){
+  const td=today();const now=new Date();
+  function parseD(s){if(!s)return null;if(s.includes('/')){const[d,m,y]=s.split('/');return new Date(parseInt(y),parseInt(m)-1,parseInt(d));}if(s.includes('-')){const[y,m,d]=s.split('-');return new Date(parseInt(y),parseInt(m)-1,parseInt(d));}return null;}
+  if(CaisseP==='day')return arr.filter(x=>x[dateKey]===td);
+  if(CaisseP==='week'){const d=new Date();d.setDate(d.getDate()-7);return arr.filter(x=>{const dt=parseD(x[dateKey]);return dt&&dt>=d;});}
+  if(CaisseP==='month'){const m=now.getMonth(),y=now.getFullYear();return arr.filter(x=>{const dt=parseD(x[dateKey]);return dt&&dt.getMonth()===m&&dt.getFullYear()===y;});}
+  return arr;
+}
+function renderCaisseBen(){
+  const tArr=Object.values(D.transfers||{});
+  const eArr=Object.values(D.expenses||{});
+  const fxArr=Object.values(D.forex||{});
+  const paid=filterCP(tArr.filter(t=>t.status==='paid'),'paidDate');
+  const comm=paid.reduce((s,t)=>s+(parseInt(t.comm||t.commission||0)||0),0);
+  const fxGain=filterCP(fxArr,'date').reduce((s,f)=>s+(parseInt(f.gain||0)||0),0);
+  const dep=filterCP(eArr,'date').reduce((s,e)=>s+(parseInt(e.mnt||0)||0),0);
+  const net=comm+fxGain-dep;
+  document.getElementById('cb-comm').textContent='+'+fmtGNF(comm);
+  document.getElementById('cb-forex').textContent='+'+fmtGNF(fxGain);
+  document.getElementById('cb-dep').textContent='-'+fmtGNF(dep);
+  const netEl=document.getElementById('cb-net');
+  netEl.textContent=(net<0?'-':'')+fmtGNF(Math.abs(net));
+  netEl.style.color=net>=0?'var(--gr)':'var(--re)';
+}
+
 // ── GAINS DEVISES ─────────────────────────────────────────
 let GF='day';
 function setGF(f,b){GF=f;document.querySelectorAll('#gains-chips .chip').forEach(c=>c.classList.remove('on'));b.classList.add('on');renderGains();}
@@ -1519,6 +1693,7 @@ function editCaisse(id){
   lSave();renderCaisse();updStats();showT('✅ Modifié','s');
 }
 function renderCaisse(){
+  renderCaisseBen();
   const arr=Object.values(D.caisse||{});
   arr.sort((a,b)=>b.id.localeCompare(a.id));
   const solde=arr.reduce((s,o)=>s+(o.dir==='in'?o.mnt:-o.mnt),0);
@@ -1729,6 +1904,16 @@ function renderHome(){
   const tArr=Object.values(D.transfers||{});
   const paid=tArr.filter(t=>t.status==='paid'&&t.paidDate===td);
   const pend=tArr.filter(t=>t.status==='pending');
+  // Alerte transferts en attente depuis +30 min
+  const now2=Date.now();
+  const vieux=pend.filter(t=>{const age=now2-parseInt(t.id.replace('t',''));return age>1800000;});
+  const alertEl=document.getElementById('home-alert');
+  if(alertEl){
+    if(vieux.length>0){
+      alertEl.style.display='flex';
+      alertEl.innerHTML=`<span style="font-size:11px;font-weight:700;color:var(--gold)">⏰ ${vieux.length} transfert(s) en attente depuis +30 min !</span><button onclick="goPage('att')" style="background:var(--goldd);color:var(--gold);border:1px solid rgba(240,165,0,.2);border-radius:6px;padding:3px 9px;font-size:10px;font-weight:700;cursor:pointer;font-family:'Sora',sans-serif">Voir →</button>`;
+    }else{alertEl.style.display='none';}
+  }
   const comm=paid.reduce((s,t)=>s+(t.comm||t.commission||0),0);
   const exp=Object.values(D.expenses||{}).filter(e=>e.date===td).reduce((s,e)=>s+e.mnt,0);
   const fx=Object.values(D.forex||{}).filter(f=>f.date===td).reduce((s,f)=>s+f.gnf,0);
@@ -1773,6 +1958,21 @@ function updStats(){
   document.getElementById('s-ben').textContent=fmtS(Math.abs(ben));
   document.getElementById('s-agt').textContent=Object.values(D.users||{}).filter(u=>u.active!==false).length;
   updateAdminBadge();
+  // Streak jours actifs consécutifs
+  try{
+    const tArr2=Object.values(D.transfers||{});
+    const activeDays=new Set(tArr2.map(t=>t.paidDate||t.date).filter(Boolean));
+    let streak=0;const now3=new Date();
+    while(true){
+      const d=new Date(now3);d.setDate(d.getDate()-streak);
+      const ds=d.toLocaleDateString('fr-FR');
+      if(activeDays.has(ds))streak++;else break;
+      if(streak>365)break;
+    }
+    const sb=document.getElementById('streak-badge');
+    if(sb&&streak>1){sb.style.display='inline';sb.textContent='🔥'+streak+'j';}
+    else if(sb)sb.style.display='none';
+  }catch(e){}
 }
 
 // ── ÉDITION TRANSFERT ────────────────────────────────────
