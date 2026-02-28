@@ -1759,8 +1759,8 @@ function renderRap(){
     <div class="rrow"><span class="rl">❌ Annulés</span><span class="rv" style="color:var(--re)">${canc.length}</span></div>
     <div class="rrow"><span class="rl">💵 Volume traité</span><span class="rv">${fmtGNF(vol)}</span></div>
     <div class="rrow"><span class="rl">💹 Commission</span><span class="rv" style="color:var(--gr)">${fmtGNF(comm)}</span></div>
-    <div class="rrow neg"><span class="rl">📉 Dépenses</span><span class="rv">${fmtGNF(exp)}</span></div>
-    <div class="rrow tot"><span class="rl">🏆 Bénéfice net</span><span class="rv" style="color:${ben>=0?'var(--gr)':'var(--re)'}">${ben>=0?'':'-'}${fmtGNF(Math.abs(ben))}</span></div>
+    <div class="rrow neg"><span class="rl">📉 Dépenses</span><span class="rv">${exp>0?'-'+fmtGNF(exp):fmtGNF(0)}</span></div>
+    <div class="rrow tot"><span class="rl">🏆 Bénéfice net</span><span class="rv" style="color:${ben>=0?'var(--gr)':'var(--re)'}">${ben<0?'-':''}${fmtGNF(Math.abs(ben))}</span></div>
   </div>
   ${fxF.length?`<div class="rcard">
     <div style="font-size:9px;color:var(--te);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">💱 Échanges devises</div>
@@ -1920,7 +1920,7 @@ function renderHome(){
   const ben=comm-exp;
   document.getElementById('h-ben').textContent=fmtGNF(Math.abs(ben));
   document.getElementById('h-ben').style.color=ben>=0?'var(--gr)':'var(--re)';
-  document.getElementById('h-note').textContent=`Commission ${fmtGNF(comm)} − Dépenses ${fmtGNF(exp)}`;
+  document.getElementById('h-note').textContent=`+${fmtGNF(comm)} − ${exp>0?'-'+fmtGNF(exp):'0 GNF'} = ${ben<0?'-':''}${fmtGNF(Math.abs(ben))}`;
   document.getElementById('h-att').textContent=pend.length;
   document.getElementById('h-pay').textContent=paid.length;
   document.getElementById('h-com').textContent=fmtS(comm)+' GNF';
@@ -2108,14 +2108,14 @@ function calcGains(){
   const net=brut-dep;
 
   // Afficher
-  document.getElementById('calc-comm').textContent=fmtGNF(comm);
-  document.getElementById('calc-forex').textContent=fmtGNF(fxGain);
+  document.getElementById('calc-comm').textContent='+'+fmtGNF(comm);
+  document.getElementById('calc-forex').textContent='+'+fmtGNF(fxGain);
   document.getElementById('calc-brut').textContent=fmtGNF(brut);
-  document.getElementById('calc-dep').textContent=fmtGNF(dep);
+  document.getElementById('calc-dep').textContent=dep>0?'-'+fmtGNF(dep):fmtGNF(0);
   const netEl=document.getElementById('calc-net');
-  netEl.textContent=fmtGNF(Math.abs(net));
+  netEl.textContent=(net<0?'-':'')+fmtGNF(Math.abs(net));
   netEl.style.color=net>=0?'var(--gr)':'var(--re)';
-  document.getElementById('calc-total').textContent=fmtGNF(Math.abs(net));
+  document.getElementById('calc-total').textContent=(net<0?'-':'')+fmtGNF(Math.abs(net));
   document.getElementById('calc-total').style.color=net>=0?'var(--gr)':'var(--re)';
 
   const from=document.getElementById('calc-from').value;
