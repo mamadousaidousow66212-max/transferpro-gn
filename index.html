@@ -1826,19 +1826,27 @@ function initCalc(){
   const saved=localStorage.getItem('tpro_participants');
   if(saved){try{Participants=JSON.parse(saved);}catch(e){Participants=[];}}
   if(!Participants.length){
-    // Pré-remplir avec les agents existants
     Object.values(D.users||{}).forEach(u=>{
       Participants.push({id:'p'+Date.now()+Math.random(),name:u.name,pct:0,role:u.role==='admin'?'Admin':'Agent'});
     });
   }
-  setCalcToday();
+  // Mettre les dates seulement si pas encore définies
+  if(!document.getElementById('calc-from').value){
+    setCalcToday();
+  }
 }
 
 function setCalcToday(){
-  const td=new Date();
+  // Par défaut: 7 derniers jours pour avoir des données significatives
+  const now=new Date();
+  const from=new Date();from.setDate(from.getDate()-7);
   const fmt=d=>d.toISOString().split('T')[0];
-  document.getElementById('calc-from').value=fmt(td);
-  document.getElementById('calc-to').value=fmt(td);
+  document.getElementById('calc-from').value=fmt(from);
+  document.getElementById('calc-to').value=fmt(now);
+  // Sélectionner le chip "7 jours"
+  document.querySelectorAll('#calc-chips .chip').forEach(c=>c.classList.remove('on'));
+  const chips=document.querySelectorAll('#calc-chips .chip');
+  if(chips[1])chips[1].classList.add('on');
 }
 
 function setCalcP(p,b){
@@ -1893,9 +1901,9 @@ function calcGains(){
   const fxArr=Object.values(D.forex||{});
 
   const paid=tArr.filter(t=>t.status==='paid'&&inPeriod(t.paidDate));
-  const comm=paid.reduce((s,t)=>s+(t.comm||t.commission||0),0);
-  const fxGain=fxArr.filter(f=>inPeriod(f.date)).reduce((s,f)=>s+(f.gain||0),0);
-  const dep=eArr.filter(e=>inPeriod(e.date)).reduce((s,e)=>s+e.mnt,0);
+  const comm=paid.reduce((s,t)=>s+(parseInt(t.comm||t.commission||0)||0),0);
+  const fxGain=fxArr.filter(f=>inPeriod(f.date)).reduce((s,f)=>s+(parseInt(f.gain||0)||0),0);
+  const dep=eArr.filter(e=>inPeriod(e.date)).reduce((s,e)=>s+(parseInt(e.mnt||0)||0),0);
   const brut=comm+fxGain;
   const net=brut-dep;
 
@@ -1934,9 +1942,9 @@ function getNet(){
   const eArr=Object.values(D.expenses||{});
   const fxArr=Object.values(D.forex||{});
   const paid=tArr.filter(t=>t.status==='paid'&&inPeriod(t.paidDate));
-  const comm=paid.reduce((s,t)=>s+(t.comm||t.commission||0),0);
-  const fxGain=fxArr.filter(f=>inPeriod(f.date)).reduce((s,f)=>s+(f.gain||0),0);
-  const dep=eArr.filter(e=>inPeriod(e.date)).reduce((s,e)=>s+e.mnt,0);
+  const comm=paid.reduce((s,t)=>s+(parseInt(t.comm||t.commission||0)||0),0);
+  const fxGain=fxArr.filter(f=>inPeriod(f.date)).reduce((s,f)=>s+(parseInt(f.gain||0)||0),0);
+  const dep=eArr.filter(e=>inPeriod(e.date)).reduce((s,e)=>s+(parseInt(e.mnt||0)||0),0);
   return comm+fxGain-dep;
 }
 
@@ -2029,7 +2037,8 @@ function renderRepartition(net){
 
 function renderCalc(){
   initCalc();
-  calcGains();
+  // Petit délai pour que le DOM soit à jour
+  setTimeout(calcGains, 50);
 }
 
 function waCalc(){
