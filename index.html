@@ -2291,7 +2291,21 @@ function showT(msg,type='i'){
   t.textContent=msg;t.className='toast '+type+' on';
   setTimeout(()=>t.className='toast '+type,3000);
 }
-function refreshAll(){updStats();renderHome();}
+function refreshAll(){
+  updStats();
+  // Re-render la page actuellement visible
+  const activePg=document.querySelector('.pg.on');
+  if(!activePg)return;
+  const pgId=activePg.id.replace('pg-','');
+  const renders={
+    home:renderHome,att:renderAtt,dep:renderDep,
+    fx:renderFx,caisse:renderCaisse,rap:renderRap,
+    hist:renderHist,admin:renderAdmin,
+    gains:renderGains,gtrans:renderGtrans,calc:renderCalc
+  };
+  if(renders[pgId])renders[pgId]();
+  else renderHome();
+}
 </script>
 </body>
 </html>
