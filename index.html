@@ -774,6 +774,16 @@ textarea{resize:none;height:54px}
   </div>
 
   <!-- ═══ PAGE ADMIN ═══ -->
+  <!-- ═══ PAGE CORBEILLE ═══ -->
+  <div id="pg-trash" class="pg">
+    <div style="background:linear-gradient(135deg,#1a0505,#0f0202);border:1px solid rgba(255,63,86,.15);border-radius:var(--r);padding:12px;margin-bottom:10px;text-align:center">
+      <div style="font-size:9px;color:var(--re);text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px">🗑 Corbeille</div>
+      <div id="trash-count" style="font-size:22px;font-weight:900;color:var(--re);font-family:'JetBrains Mono',monospace">0 élément(s)</div>
+      <div style="font-size:9px;color:var(--t2);margin-top:3px">Seul l'admin peut supprimer définitivement</div>
+    </div>
+    <div id="trash-list"></div>
+  </div>
+
   <div id="pg-admin" class="pg">
     <div id="admin-dr" style="display:none">
       <div class="sec">⚠️ Demandes suppression</div>
@@ -1074,12 +1084,14 @@ function setupNav(){
     {id:'gtrans',icon:'💹',label:'Gains T.'},
     {id:'gains',icon:'💰',label:'Gains FX'},
     {id:'calc',icon:'🧮',label:'Calcul'},
+    {id:'trash',icon:'🗑',label:'Corbeille'},
   ];
   // Rangée 2 admin (remplace)
   const adminPages=[
     {id:'gtrans',icon:'💹',label:'Gains T.'},
     {id:'gains',icon:'💰',label:'Gains FX'},
     {id:'calc',icon:'🧮',label:'Calcul'},
+    {id:'trash',icon:'🗑',label:'Corbeille'},
     {id:'caisse',icon:'🏦',label:'Caisse'},
     {id:'rap',icon:'📊',label:'Rapport'},
     {id:'hist',icon:'📋',label:'Hist.'},
@@ -1109,7 +1121,7 @@ function goPage(p){
   const renders={
     home:renderHome,att:renderAtt,dep:renderDep,
     fx:renderFx,caisse:renderCaisse,rap:renderRap,
-    hist:renderHist,admin:renderAdmin,gains:renderGains,gtrans:renderGtrans,calc:renderCalc
+    hist:renderHist,admin:renderAdmin,gains:renderGains,gtrans:renderGtrans,calc:renderCalc,trash:renderTrash
   };
   if(renders[p])renders[p]();
 }
@@ -1242,9 +1254,10 @@ function tCard(t,pend=false){
     <div>
       <div class="tc-nom">${t.nom}</div>
       <div class="tc-agt">👷 ${t.agentName||t.agentId}</div>
-      <div style="margin-top:4px">
+      <div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:3px">
         <span class="badge ${t.status==='pending'?'b-pend':t.status==='paid'?'b-paid':'b-canc'}">${t.status==='pending'?'⏳ Attente':t.status==='paid'?'✅ Payé':'❌ Annulé'}</span>
-        ${hasDR?'<span class="badge b-delq" style="margin-left:3px">🗑 Suppr.</span>':''}
+        ${t.editedAt?`<span class="badge" style="background:rgba(167,139,250,.15);color:#a78bfa;border:1px solid rgba(167,139,250,.3)">✏️ Modifié</span>`:''}
+        ${hasDR?'<span class="badge b-delq" style="margin-left:3px">🗑 Corbeille</span>':''}
       </div>
     </div>
     <div class="tc-rv">
@@ -1261,15 +1274,22 @@ function tCard(t,pend=false){
     ${t.tel?`<span class="tg tg-t">📞 ${t.tel}</span>`:''}
     ${t.note?`<span class="tg tg-n">📝 ${t.note}</span>`:''}
   </div>
-  ${pend&&!hasDR?`<div class="tc-btns">
-    <button class="tbtn tb-pay" onclick="openVal('${t.id}')">🔐 Valider</button>
-    <button class="tbtn" style="background:rgba(167,139,250,.1);color:#a78bfa;border:1px solid rgba(167,139,250,.2);flex:.6" onclick="openEditT('${t.id}')">✏️</button>
-    <button class="tbtn tb-wa" onclick="wa1('${t.id}')">📲</button>
-    <button class="tbtn tb-del" onclick="reqDel('${t.id}')">🗑</button>
-    <button class="tbtn tb-canc" onclick="doCancel('${t.id}')">❌</button>
-  </div>`:(isAdmin&&!pend&&!hasDR)?`<div class="tc-btns" style="justify-content:flex-end">
-    <button class="tbtn tb-adel" style="flex:0;padding:6px 11px" onclick="adminDel('${t.id}')">🗑 Supprimer</button>
+  ${(t.editHistory&&t.editHistory.length)?`
+  <div style="background:rgba(167,139,250,.07);border:1px solid rgba(167,139,250,.15);border-radius:7px;padding:6px 9px;margin-top:5px;margin-bottom:2px">
+    <div style="font-size:8px;color:#a78bfa;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">✏️ Historique des modifications</div>
+    ${t.editHistory.slice().reverse().map(e=>`
+      <div style="font-size:9px;color:var(--t2);margin-bottom:3px;padding-bottom:3px;border-bottom:1px solid rgba(167,139,250,.1)">
+        <span style="color:#a78bfa;font-weight:600">${e.byName||e.by}</span> · ${e.date} ${e.time}
+        ${e.changes&&e.changes.length?'<br>'+e.changes.map(c=>`<span style="color:var(--t1)">• ${c}</span>`).join('<br>'):''}
+      </div>`).join('')}
   </div>`:''}
+  <div class="tc-btns">
+    ${pend&&!hasDR?`<button class="tbtn tb-pay" onclick="openVal('${t.id}')">🔐 Valider</button>`:''}
+    ${pend&&!hasDR?`<button class="tbtn tb-canc" onclick="doCancel('${t.id}')">❌</button>`:''}
+    ${!hasDR?`<button class="tbtn" style="background:rgba(167,139,250,.1);color:#a78bfa;border:1px solid rgba(167,139,250,.2);flex:.6" onclick="openEditT('${t.id}')">✏️ Modifier</button>`:''}
+    ${pend&&!hasDR?`<button class="tbtn tb-wa" onclick="wa1('${t.id}')">📲</button>`:''}
+    ${!hasDR?`<button class="tbtn tb-del" style="flex:.6" onclick="moveToTrash('${t.id}')">🗑</button>`:''}
+  </div>
 </div>`;
 }
 
@@ -1330,33 +1350,111 @@ async function doCancel(id){
   lSave();updStats();renderAtt();showT('❌ Annulé','i');
 }
 
-// ── DEMANDES SUPPRESSION ──────────────────────────────────
-async function reqDel(id){
-  if(Object.values(D.deleteRequests||{}).find(r=>r.transferId===id&&r.status==='pending')){showT('Déjà demandé','i');return;}
-  if(!confirm('Demander la suppression à l\'admin ?'))return;
-  const rid='dr'+Date.now();
-  const req={id:rid,transferId:id,requestedBy:CU.id,requestedByName:CU.name,date:today(),time:nowT(),status:'pending'};
-  D.deleteRequests=D.deleteRequests||{};
-  D.deleteRequests[rid]=req;
-  await fbW('tpro/deleteRequests/'+rid,req);
-  lSave();updateAdminBadge();renderAtt();showT('📨 Demande envoyée à l\'admin','s');
-}
-async function adminDel(id){
-  if(!confirm('Supprimer définitivement ?'))return;
+// ── CORBEILLE ────────────────────────────────────────────
+async function moveToTrash(id){
+  const t=(D.transfers||{})[id];if(!t)return;
+  if(!confirm('Mettre ce transfert à la corbeille ?'))return;
+  // Déplacer dans la corbeille (deleteRequests avec status deleted)
+  const rid='tr'+Date.now();
+  const trashed={...t, trashedBy:CU.id, trashedByName:CU.name,
+    trashedDate:today(), trashedTime:nowT(), trashed:true};
+  D.trash=D.trash||{};D.trash[id]=trashed;
+  await fbW('tpro/trash/'+id, trashed);
+  // Retirer des transferts actifs
   delete D.transfers[id];
   await fbDel('tpro/transfers/'+id);
+  // Nettoyer deleteRequests liés
   Object.entries(D.deleteRequests||{}).forEach(async([k,r])=>{
     if(r.transferId===id){delete D.deleteRequests[k];await fbDel('tpro/deleteRequests/'+k);}
   });
-  lSave();updStats();renderHist();renderAdmin();showT('🗑 Supprimé','i');
+  lSave();updStats();
+  // Refresh page courante
+  const pg=document.querySelector('.pg.on');
+  const pgId=pg?.id?.replace('pg-','');
+  if(pgId==='att')renderAtt();
+  else if(pgId==='hist')renderHist();
+  showT('🗑 Mis à la corbeille','i');
+}
+
+async function restoreFromTrash(id){
+  const t=(D.trash||{})[id];if(!t)return;
+  const restored={...t};
+  delete restored.trashedBy;delete restored.trashedByName;
+  delete restored.trashedDate;delete restored.trashedTime;delete restored.trashed;
+  D.transfers=D.transfers||{};D.transfers[id]=restored;
+  await fbW('tpro/transfers/'+id,restored);
+  delete D.trash[id];
+  await fbDel('tpro/trash/'+id);
+  lSave();updStats();renderTrash();
+  showT('✅ Transfert restauré !','s');
+}
+
+async function deleteForever(id){
+  if(CU?.role!=='admin'){showT('⚠️ Admin uniquement','e');return;}
+  if(!confirm('SUPPRIMER DÉFINITIVEMENT ? Cette action est irréversible !'))return;
+  delete D.trash[id];
+  await fbDel('tpro/trash/'+id);
+  lSave();renderTrash();showT('🗑 Supprimé définitivement','i');
+}
+
+function renderTrash(){
+  const arr=Object.values(D.trash||{});
+  arr.sort((a,b)=>b.id.localeCompare(a.id));
+  document.getElementById('trash-count').textContent=arr.length+' élément(s)';
+  const isAdmin=CU?.role==='admin';
+  const el=document.getElementById('trash-list');
+  if(!arr.length){
+    el.innerHTML=`<div class="empty"><div class="empty-e">🗑</div><div class="empty-t">Corbeille vide</div><div class="empty-d">Les transferts supprimés apparaissent ici</div></div>`;
+    return;
+  }
+  // Bouton vider tout (admin)
+  const emptyBtn=isAdmin?`<button onclick="emptyTrash()" style="width:100%;background:var(--red);color:var(--re);border:1px solid rgba(255,63,86,.2);border-radius:9px;padding:9px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Sora',sans-serif;margin-bottom:10px">🗑 Vider la corbeille (${arr.length})</button>`:'';
+  el.innerHTML=emptyBtn+arr.map(t=>`
+    <div class="tc" style="opacity:.8;border-left:3px solid var(--re)">
+      <div class="tc-top">
+        <div>
+          <div class="tc-nom">${t.nom}</div>
+          <div class="tc-agt">👷 ${t.agentName||t.agentId}</div>
+          <div style="font-size:9px;color:var(--re);margin-top:3px">🗑 Supprimé par ${t.trashedByName||t.trashedBy} le ${t.trashedDate} ${t.trashedTime}</div>
+        </div>
+        <div class="tc-rv">
+          <div class="tc-amt">${fmtGNF(t.mnt||t.montant||0)}</div>
+          ${(t.comm||t.commission)?`<div class="tc-comm">+${fmtGNF(t.comm||t.commission)}</div>`:''}
+        </div>
+      </div>
+      <div class="tgs">
+        <span class="tg tg-k">🔑 ${t.code}</span>
+        <span class="tg tg-c">${t.pays||''}</span>
+        <span class="tg tg-t">${t.date}</span>
+        <span class="badge ${t.status==='pending'?'b-pend':t.status==='paid'?'b-paid':'b-canc'}" style="font-size:7px">${t.status==='pending'?'⏳ Attente':t.status==='paid'?'✅ Payé':'❌ Annulé'}</span>
+      </div>
+      <div class="tc-btns">
+        <button class="tbtn" style="background:rgba(0,201,122,.1);color:var(--gr);border:1px solid rgba(0,201,122,.2)" onclick="restoreFromTrash('${t.id}')">↩️ Restaurer</button>
+        ${isAdmin?`<button class="tbtn tb-adel" style="flex:.6" onclick="deleteForever('${t.id}')">🗑 Supprimer</button>`:''}
+      </div>
+    </div>`).join('');
+}
+
+async function emptyTrash(){
+  if(CU?.role!=='admin')return;
+  if(!confirm('Vider complètement la corbeille ? Irréversible !'))return;
+  const ids=Object.keys(D.trash||{});
+  for(const id of ids){
+    await fbDel('tpro/trash/'+id);
+  }
+  D.trash={};
+  lSave();renderTrash();showT('🗑 Corbeille vidée','i');
+}
+
+// Anciennes fonctions conservées pour compatibilité
+async function reqDel(id){moveToTrash(id);}
+async function adminDel(id){
+  // Déplacer à la corbeille au lieu de supprimer directement
+  moveToTrash(id);
 }
 async function approveDR(rid){
   const req=(D.deleteRequests||{})[rid];if(!req)return;
-  delete D.transfers[req.transferId];
-  delete D.deleteRequests[rid];
-  await fbDel('tpro/transfers/'+req.transferId);
-  await fbDel('tpro/deleteRequests/'+rid);
-  lSave();updStats();renderAdmin();renderAtt();showT('✅ Suppression approuvée','s');
+  moveToTrash(req.transferId);
 }
 async function denyDR(rid){
   if(!D.deleteRequests[rid])return;
@@ -2021,6 +2119,24 @@ async function saveEditT(){
   const t=(D.transfers||{})[id];if(!t)return;
   const mnt=readM('edit-mnt')||t.mnt||t.montant||0;
   const comm=readM('edit-comm')||(t.comm||t.commission||0);
+  // Journal des modifications
+  const prevEdits=t.editHistory||[];
+  const editEntry={
+    by:CU.id,byName:CU.name,
+    date:today(),time:nowT(),
+    changes:[]
+  };
+  // Détecter les champs modifiés
+  const oldMnt=t.mnt||t.montant||0;
+  const oldComm=t.comm||t.commission||0;
+  if(mnt!==oldMnt)editEntry.changes.push(`Montant: ${fmtGNF(oldMnt)} → ${fmtGNF(mnt)}`);
+  if(comm!==oldComm)editEntry.changes.push(`Commission: ${fmtGNF(oldComm)} → ${fmtGNF(comm)}`);
+  const fields=[['nom','Nom'],['code','Code'],['tel','Tél'],['pays','Pays'],['note','Note']];
+  fields.forEach(([fid,label])=>{
+    const newVal=document.getElementById('edit-'+fid).value.trim();
+    const oldVal=t[fid]||'';
+    if(newVal&&newVal!==oldVal)editEntry.changes.push(`${label}: "${oldVal}" → "${newVal}"`);
+  });
   const upd={...t,
     nom:document.getElementById('edit-nom').value.trim()||t.nom,
     mnt,montant:mnt,
@@ -2030,12 +2146,19 @@ async function saveEditT(){
     pays:document.getElementById('edit-pays').value.trim()||t.pays,
     note:document.getElementById('edit-note').value.trim(),
     comm,commission:comm,
-    editedBy:CU.id,editedAt:today()+' '+nowT()
+    editedBy:CU.id,editedByName:CU.name,
+    editedAt:today()+' '+nowT(),
+    editHistory:[...prevEdits,editEntry]
   };
   D.transfers[id]=upd;
   await fbW('tpro/transfers/'+id,upd);
-  lSave();closeModal('m-edit');updStats();renderAtt();
-  showT('✅ Transfert modifié !','s');
+  lSave();closeModal('m-edit');updStats();
+  // Refresh page courante
+  const pgId=document.querySelector('.pg.on')?.id?.replace('pg-','');
+  if(pgId==='att')renderAtt();
+  else if(pgId==='hist')renderHist();
+  else renderAtt();
+  showT(`✅ Modifié par ${CU.name} · ${editEntry.changes.length} champ(s)`,'s');
 }
 
 // ── CALCUL GAINS ──────────────────────────────────────────
